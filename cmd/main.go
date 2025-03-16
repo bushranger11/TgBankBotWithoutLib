@@ -3,17 +3,33 @@ package main
 import (
 	"flag"
 	"log"
+	"os"
 	"time"
 
 	"TelegramBot/internal/bot"
 	"TelegramBot/internal/storage"
 	"TelegramBot/internal/telegram"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
-	token := mustToken()
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("Ошибка при загрузке .env файла: %v", err)
+	}
 
-	storage := storage.NewStorage()
+	connString := os.Getenv("DB_CONN_STRING")
+	if connString == "" {
+		log.Fatal("DB_CONN_STRING не указана в .env файле")
+	}
+
+	storage, err := storage.NewStorage(connString)
+	if err != nil {
+		log.Fatalf("Ошибка при подключении к базе данных: %v", err)
+	}
+
+	token := mustToken()
 
 	telegramAPI := telegram.NewAPI(token)
 
